@@ -1,53 +1,164 @@
 import { supabase } from "@/lib/supabase";
 import Link from "next/link";
-import { Settings } from "lucide-react";
-
+import {
+  Car,
+  Eye,
+  Clock3,
+  CheckCircle2,
+  Film,
+  ArrowRight,
+  Plus,
+  BarChart3,
+} from "lucide-react";
 export const dynamic = "force-dynamic";
-
-type Dealer = { dealership_name: string | null; accent_color: string | null; homepage_video: string | null; };
-type Vehicle = { id:string; title:string|null; published:boolean|null; teaser_video:string|null; walkaround_video:string|null; created_at:string; };
-
-export default async function Home() {
-  const { data: dealerData } = await supabase.from("dealers").select("*").limit(1);
-  const { data: vehicleData } = await supabase.from("vehicles").select("*").order("created_at", { ascending:false });
-  const dealer = (dealerData?.[0] || null) as Dealer | null;
-  const vehicles = (vehicleData || []) as Vehicle[];
-  const accent = dealer?.accent_color || "#732b97";
-  const published = vehicles.filter((v)=>v.published).length;
-  const drafts = vehicles.filter((v)=>!v.published).length;
-  const ready = vehicles.filter((v)=>v.teaser_video && v.walkaround_video && !v.published).length;
-
+export default async function DashboardPage() {
+  const { data: dealerData } = await supabase
+    .from("dealers")
+    .select("*")
+    .limit(1);
+  const { data: vehicleData } = await supabase
+    .from("vehicles")
+    .select("*")
+    .order("created_at", { ascending: false });
+  const dealer = dealerData?.[0] || null;
+  const vehicles = vehicleData || [];
+  const published = vehicles.filter((v: any) => v.published).length;
+  const drafts = vehicles.filter((v: any) => !v.published).length;
+  const ready = vehicles.filter(
+    (v: any) => v.teaser_video && v.walkaround_video && !v.published,
+  ).length;
+  const videoReady = vehicles.filter(
+    (v: any) => v.teaser_video && v.walkaround_video,
+  ).length;
   return (
-    <main className="min-h-screen bg-[#f6f6f8] text-black">
-      <header className="border-b border-black/10 bg-white">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-8 py-6">
-          <div><p className="text-sm font-semibold text-black/50">Online Showroom Admin V2</p><h1 className="text-4xl font-bold tracking-tight">{dealer?.dealership_name || "Dealership Admin"}</h1></div>
-          <div className="flex gap-3">
-            <Link href="/settings" className="flex items-center gap-2 rounded-full border border-black/10 bg-white px-5 py-3 font-bold"><Settings size={17}/> Settings</Link>
-            <Link href="/add-vehicle" className="rounded-full px-6 py-3 font-bold text-white" style={{backgroundColor:accent}}>Add Vehicle</Link>
+    <div className="ultimate-page">
+      <section className="ultimate-hero">
+        <div>
+          <p className="ultimate-eyebrow">Control Centre</p>
+          <h1>Dashboard</h1>
+          <p className="ultimate-sub">
+            Manage live stock, upload walkarounds and publish cars into your
+            video showroom.
+          </p>
+        </div>
+        <div className="hero-actions">
+          <Link href="/insights" className="soft-btn">
+            <BarChart3 size={17} /> Insights
+          </Link>
+          <Link href="/stock" className="purple-btn">
+            <Plus size={17} /> Import stock
+          </Link>
+        </div>
+      </section>
+      <section className="metric-grid">
+        <Metric
+          title="Total stock"
+          value={vehicles.length}
+          icon={<Car size={18} />}
+        />
+        <Metric
+          title="Published"
+          value={published}
+          icon={<Eye size={18} />}
+          tone="green"
+        />
+        <Metric
+          title="Drafts"
+          value={drafts}
+          icon={<Clock3 size={18} />}
+          tone="orange"
+        />
+        <Metric
+          title="Ready"
+          value={ready}
+          icon={<CheckCircle2 size={18} />}
+          tone="purple"
+        />
+      </section>
+      <section className="ultimate-grid-two">
+        <div className="ultimate-panel">
+          <div className="panel-head">
+            <div>
+              <p className="ultimate-eyebrow dark">Video Showroom</p>
+              <h2>Vehicles</h2>
+            </div>
+            <Link href="/stock" className="text-link">
+              Live stock <ArrowRight size={16} />
+            </Link>
+          </div>
+          <div className="stock-list">
+            {vehicles.slice(0, 7).map((car: any) => (
+              <Link
+                href={`/edit-vehicle/${car.id}`}
+                key={car.id}
+                className="stock-row"
+              >
+                <div>
+                  <strong>{car.title || "Untitled vehicle"}</strong>
+                  <span>
+                    {car.price || "No price"} ·{" "}
+                    {car.published
+                      ? "Live"
+                      : car.teaser_video && car.walkaround_video
+                        ? "Ready draft"
+                        : "Needs videos"}
+                  </span>
+                </div>
+                <em className={car.published ? "status live" : "status draft"}>
+                  {car.published ? "Live" : "Draft"}
+                </em>
+              </Link>
+            ))}
           </div>
         </div>
-      </header>
-      <div className="mx-auto max-w-7xl px-8 py-10">
-        <section className="mb-8 rounded-[32px] p-8 text-white" style={{background:`linear-gradient(135deg, ${accent}, #111)`}}>
-          <p className="mb-3 text-white/70">Backend controls the customer showroom</p>
-          <h2 className="max-w-4xl text-5xl font-bold tracking-tight">Upload videos, manage stock and publish vehicles live.</h2>
-          <p className="mt-4 text-white/70">Homepage intro: {dealer?.homepage_video ? "uploaded" : "not uploaded yet"}</p>
-        </section>
-        <section className="mb-10 grid grid-cols-4 gap-5">
-          <StatCard title="Total Vehicles" value={vehicles.length}/><StatCard title="Published" value={published}/><StatCard title="Drafts" value={drafts}/><StatCard title="Ready" value={ready}/>
-        </section>
-        <section className="overflow-hidden rounded-[32px] border border-black/10 bg-white">
-          <div className="border-b border-black/10 p-6"><h2 className="text-2xl font-bold">Vehicles</h2><p className="text-black/50">Only published vehicles with a portrait teaser and landscape walkaround appear publicly.</p></div>
-          {vehicles.length===0 ? <div className="p-10 text-center"><h3 className="mb-2 text-2xl font-bold">No vehicles added yet</h3><p className="mb-6 text-black/50">Add your first vehicle, upload videos, then publish.</p><Link href="/add-vehicle" className="inline-flex rounded-full px-6 py-3 font-bold text-white" style={{backgroundColor:accent}}>Add First Vehicle</Link></div> :
-            vehicles.map((car)=><div key={car.id} className="flex items-center justify-between border-b border-black/10 p-6 last:border-b-0">
-              <div><h3 className="text-xl font-bold">{car.title || "Untitled vehicle"}</h3><p className="text-sm text-black/50">{car.published ? "Published":"Draft"} · {car.teaser_video ? "Portrait teaser uploaded":"No portrait teaser"} · {car.walkaround_video ? "Landscape walkaround uploaded":"No walkaround"}</p></div>
-              <div className="flex items-center gap-3"><Link href={`/edit-vehicle/${car.id}`} className="rounded-full bg-black px-5 py-2 text-sm font-bold text-white">Edit</Link><span className={`rounded-full px-4 py-2 text-sm font-bold ${car.published ? "bg-green-100 text-green-700":"bg-orange-100 text-orange-700"}`}>{car.published ? "Live":"Draft"}</span></div>
-            </div>)
-          }
-        </section>
-      </div>
-    </main>
-  )
+        <div
+  className="ultimate-panel"
+  style={{
+    background: "#732b97",
+    color: "white",
+  }}
+>
+          <Film size={30} />
+          <h2>Showroom status</h2>
+          <p>
+            {videoReady}/{vehicles.length} vehicles have the core videos
+            uploaded.
+          </p>
+          <div className="check-list">
+            <span className={dealer?.homepage_video ? "done" : ""}>
+              Homepage intro video
+            </span>
+            <span className={vehicles.length > 0 ? "done" : ""}>
+              Stock imported
+            </span>
+            <span className={published > 0 ? "done" : ""}>
+              Live stock published
+            </span>
+          </div>
+          <Link href="/settings" className="white-btn">
+            Settings
+          </Link>
+        </div>
+      </section>
+    </div>
+  );
 }
-function StatCard({title,value}:{title:string;value:number}){return <div className="rounded-3xl border border-black/10 bg-white p-6"><p className="mb-3 text-sm font-semibold text-black/50">{title}</p><h3 className="text-5xl font-bold">{value}</h3></div>}
+function Metric({
+  title,
+  value,
+  icon,
+  tone = "default",
+}: {
+  title: string;
+  value: number;
+  icon: React.ReactNode;
+  tone?: "default" | "green" | "orange" | "purple";
+}) {
+  return (
+    <div className={`metric-card ${tone}`}>
+      <div className="metric-icon">{icon}</div>
+      <p>{title}</p>
+      <h3>{value}</h3>
+    </div>
+  );
+}
