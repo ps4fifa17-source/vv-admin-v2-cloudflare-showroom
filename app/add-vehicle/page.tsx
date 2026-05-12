@@ -1,1 +1,85 @@
- "use client";import {useState} from "react";import {supabase} from "@/lib/supabase";import {useRouter} from "next/navigation";import Link from "next/link";import {Save,ArrowLeft} from "lucide-react";function slug(t:string){return t.toLowerCase().trim().replace(/[^a-z0-9]+/g,"-").replace(/(^-|-$)/g,"")}export default function AddVehiclePage(){const r=useRouter();const[title,setTitle]=useState("");const[reg,setReg]=useState("");const[price,setPrice]=useState("");const[mileage,setMileage]=useState("");const[saving,setSaving]=useState(false);async function save(){if(!title)return alert("Title required");setSaving(true);const{data,error}=await supabase.from("vehicles").insert([{title,slug:slug(title),reg,price,mileage,published:false}]).select("id").single();setSaving(false);if(error)return alert(error.message);r.push(`/edit-vehicle/${data.id}`)}return <div className="ultimate-page"><section className="ultimate-hero"><div><p className="ultimate-eyebrow">Manual Stock</p><h1>Add Vehicle</h1><p className="ultimate-sub">Use Live Stock where possible. Manual add is fallback.</p></div><Link href="/stock" className="soft-btn"><ArrowLeft size={17}/> Live Stock</Link></section><section className="ultimate-panel form-panel"><div className="form-grid"><label className="admin-field"><span>Registration</span><input value={reg} onChange={e=>setReg(e.target.value.toUpperCase())}/></label><label className="admin-field"><span>Title</span><input value={title} onChange={e=>setTitle(e.target.value)}/></label><label className="admin-field"><span>Price</span><input value={price} onChange={e=>setPrice(e.target.value)}/></label><label className="admin-field"><span>Mileage</span><input value={mileage} onChange={e=>setMileage(e.target.value)}/></label></div><button onClick={save} disabled={saving} className="purple-btn submit-btn"><Save size={17}/>{saving?"Saving...":"Create draft"}</button></section></div>}
+"use client";
+import { useState } from "react";
+import { supabase } from "@/lib/supabase";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { Save, ArrowLeft } from "lucide-react";
+function slug(t: string) {
+  return t
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)/g, "");
+}
+export default function AddVehiclePage() {
+  const r = useRouter();
+  const [title, setTitle] = useState("");
+  const [reg, setReg] = useState("");
+  const [price, setPrice] = useState("");
+  const [mileage, setMileage] = useState("");
+  const [saving, setSaving] = useState(false);
+  async function save() {
+    if (!title) return alert("Title required");
+    setSaving(true);
+    const { data, error } = await supabase
+      .from("vehicles")
+      .insert([
+        { title, slug: slug(title), reg, price, mileage, published: false },
+      ])
+      .select("id")
+      .single();
+    setSaving(false);
+    if (error) return alert(error.message);
+    r.push(`/edit-vehicle/${data.id}`);
+  }
+  return (
+    <div className="ultimate-page">
+      <section className="ultimate-hero">
+        <div>
+          <p className="ultimate-eyebrow">Manual Stock</p>
+          <h1>Add Vehicle</h1>
+          <p className="ultimate-sub">
+            Use Live Stock where possible. Manual add is fallback.
+          </p>
+        </div>
+        <Link href="/stock" className="soft-btn">
+          <ArrowLeft size={17} /> Live Stock
+        </Link>
+      </section>
+      <section className="ultimate-panel form-panel">
+        <div className="form-grid">
+          <label className="admin-field">
+            <span>Registration</span>
+            <input
+              value={reg}
+              onChange={(e) => setReg(e.target.value.toUpperCase())}
+            />
+          </label>
+          <label className="admin-field">
+            <span>Title</span>
+            <input value={title} onChange={(e) => setTitle(e.target.value)} />
+          </label>
+          <label className="admin-field">
+            <span>Price</span>
+            <input value={price} onChange={(e) => setPrice(e.target.value)} />
+          </label>
+          <label className="admin-field">
+            <span>Mileage</span>
+            <input
+              value={mileage}
+              onChange={(e) => setMileage(e.target.value)}
+            />
+          </label>
+        </div>
+        <button
+          onClick={save}
+          disabled={saving}
+          className="purple-btn submit-btn"
+        >
+          <Save size={17} />
+          {saving ? "Saving..." : "Create draft"}
+        </button>
+      </section>
+    </div>
+  );
+}

@@ -1,1 +1,87 @@
-"use client";import {useEffect,useState} from "react";import {supabase} from "@/lib/supabase";import {Save} from "lucide-react";export default function SettingsPage(){const[id,setId]=useState("");const[name,setName]=useState("");const[logo,setLogo]=useState("");const[phone,setPhone]=useState("");const[wa,setWa]=useState("");const[accent,setAccent]=useState("#732b97");const[saving,setSaving]=useState(false);useEffect(()=>{supabase.from("dealers").select("*").limit(1).then(({data})=>{const d=data?.[0];if(d){setId(d.id);setName(d.dealership_name||"");setLogo(d.logo_url||"");setPhone(d.phone||"");setWa(d.whatsapp||"");setAccent(d.accent_color||"#732b97")}})},[]);async function save(){setSaving(true);const{error}=await supabase.from("dealers").update({dealership_name:name,logo_url:logo,phone,whatsapp:wa,accent_color:accent}).eq("id",id);setSaving(false);if(error)return alert(error.message);alert("Settings saved")}return <div className="ultimate-page"><section className="ultimate-hero"><div><p className="ultimate-eyebrow">Brand Control</p><h1>Settings</h1><p className="ultimate-sub">Control branding and contact details.</p></div><button onClick={save} className="purple-btn"><Save size={17}/>{saving?"Saving...":"Save"}</button></section><section className="ultimate-panel form-panel">{logo&&<img src={logo} className="logo-preview" alt="Logo"/>}<div className="form-grid"><F label="Dealership name" v={name} s={setName}/><F label="Logo URL" v={logo} s={setLogo}/><F label="Phone" v={phone} s={setPhone}/><F label="WhatsApp" v={wa} s={setWa}/><F label="Accent colour" v={accent} s={setAccent}/></div></section></div>}function F({label,v,s}:{label:string;v:string;s:(x:string)=>void}){return <label className="admin-field"><span>{label}</span><input value={v} onChange={e=>s(e.target.value)}/></label>}
+"use client";
+import { useEffect, useState } from "react";
+import { supabase } from "@/lib/supabase";
+import { Save } from "lucide-react";
+export default function SettingsPage() {
+  const [id, setId] = useState("");
+  const [name, setName] = useState("");
+  const [logo, setLogo] = useState("");
+  const [phone, setPhone] = useState("");
+  const [wa, setWa] = useState("");
+  const [accent, setAccent] = useState("#732b97");
+  const [saving, setSaving] = useState(false);
+  useEffect(() => {
+    supabase
+      .from("dealers")
+      .select("*")
+      .limit(1)
+      .then(({ data }) => {
+        const d = data?.[0];
+        if (d) {
+          setId(d.id);
+          setName(d.dealership_name || "");
+          setLogo(d.logo_url || "");
+          setPhone(d.phone || "");
+          setWa(d.whatsapp || "");
+          setAccent(d.accent_color || "#732b97");
+        }
+      });
+  }, []);
+  async function save() {
+    setSaving(true);
+    const { error } = await supabase
+      .from("dealers")
+      .update({
+        dealership_name: name,
+        logo_url: logo,
+        phone,
+        whatsapp: wa,
+        accent_color: accent,
+      })
+      .eq("id", id);
+    setSaving(false);
+    if (error) return alert(error.message);
+    alert("Settings saved");
+  }
+  return (
+    <div className="ultimate-page">
+      <section className="ultimate-hero">
+        <div>
+          <p className="ultimate-eyebrow">Brand Control</p>
+          <h1>Settings</h1>
+          <p className="ultimate-sub">Control branding and contact details.</p>
+        </div>
+        <button onClick={save} className="purple-btn">
+          <Save size={17} />
+          {saving ? "Saving..." : "Save"}
+        </button>
+      </section>
+      <section className="ultimate-panel form-panel">
+        {logo && <img src={logo} className="logo-preview" alt="Logo" />}
+        <div className="form-grid">
+          <F label="Dealership name" v={name} s={setName} />
+          <F label="Logo URL" v={logo} s={setLogo} />
+          <F label="Phone" v={phone} s={setPhone} />
+          <F label="WhatsApp" v={wa} s={setWa} />
+          <F label="Accent colour" v={accent} s={setAccent} />
+        </div>
+      </section>
+    </div>
+  );
+}
+function F({
+  label,
+  v,
+  s,
+}: {
+  label: string;
+  v: string;
+  s: (x: string) => void;
+}) {
+  return (
+    <label className="admin-field">
+      <span>{label}</span>
+      <input value={v} onChange={(e) => s(e.target.value)} />
+    </label>
+  );
+}
